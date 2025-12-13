@@ -1,0 +1,49 @@
+{
+  "name": "blackandwhite",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "client": "vite",
+    "server": "json-server server/db.json --port 3001",
+    "build": "vite build",
+    "lint": "eslint .",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@emoji-mart/data": "^1.2.1",
+    "@emoji-mart/react": "^1.1.1",
+    "@jitsi/react-sdk": "^1.4.4",
+    "@tailwindcss/vite": "^4.1.17",
+    "@tanstack/react-query": "^5.90.12",
+    "@tanstack/react-query-devtools": "^5.91.1",
+    "axios": "^1.13.2",
+    "concurrently": "^9.2.1",
+    "date-fns": "^4.1.0",
+    "emoji-mart": "^5.6.0",
+    "emoji-regex": "^10.6.0",
+    "flowbite-react": "^0.12.13",
+    "json-server": "^1.0.0-beta.3",
+    "lucide-react": "^0.556.0",
+    "node": "^20.19.6",
+    "react": "^19.2.0",
+    "react-datepicker": "^9.0.0",
+    "react-dom": "^19.2.0",
+    "react-icons": "^5.5.0",
+    "react-router-dom": "^7.10.1",
+    "recharts": "^3.5.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "@types/react": "^19.2.5",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.1.1",
+    "eslint": "^9.39.1",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-refresh": "^0.4.24",
+    "globals": "^16.5.0",
+    "tailwindcss": "^4.0.0",
+    "vite": "^7.2.4"
+  }
+}

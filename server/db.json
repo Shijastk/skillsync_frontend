@@ -1,0 +1,306 @@
+{
+  "users": [
+    {
+      "id": "1",
+      "email": "john.doe@example.com",
+      "password": "password123",
+      "firstName": "John",
+      "lastName": "Doe",
+      "avatar": "https://i.pravatar.cc/150?img=1",
+      "bio": "Passionate developer and teacher",
+      "location": "New York, USA",
+      "skillsToTeach": [
+        {
+          "id": "1",
+          "name": "JavaScript",
+          "level": "Expert"
+        },
+        {
+          "id": "2",
+          "name": "React",
+          "level": "Advanced"
+        }
+      ],
+      "skillsToLearn": [
+        {
+          "id": "1",
+          "name": "Python",
+          "level": "Beginner"
+        },
+        {
+          "id": "2",
+          "name": "Machine Learning",
+          "level": "Intermediate"
+        }
+      ],
+      "credits": 100,
+      "joinedDate": "2024-01-15T10:00:00.000Z",
+      "isActive": true
+    },
+    {
+      "id": "2",
+      "email": "jane.smith@example.com",
+      "password": "password123",
+      "firstName": "Jane",
+      "lastName": "Smith",
+      "avatar": "https://i.pravatar.cc/150?img=2",
+      "bio": "UI/UX Designer & Frontend Developer",
+      "location": "San Francisco, USA",
+      "skillsToTeach": [
+        {
+          "id": "1",
+          "name": "UI/UX Design",
+          "level": "Expert"
+        },
+        {
+          "id": "2",
+          "name": "Figma",
+          "level": "Advanced"
+        }
+      ],
+      "skillsToLearn": [
+        {
+          "id": "1",
+          "name": "JavaScript",
+          "level": "Intermediate"
+        },
+        {
+          "id": "2",
+          "name": "React",
+          "level": "Beginner"
+        }
+      ],
+      "credits": 150,
+      "joinedDate": "2024-02-20T10:00:00.000Z",
+      "isActive": true
+    },
+    {
+      "id": "3",
+      "firstName": "shijas",
+      "lastName": "skillswap",
+      "email": "Shijs@example.com",
+      "password": "Shijs@example.com1",
+      "avatar": "https://i.pravatar.cc/150?img=3",
+      "bio": "",
+      "location": "",
+      "skillsToTeach": [
+        {
+          "id": "1765620092751",
+          "name": "JavaScript",
+          "level": "Intermediate"
+        },
+        {
+          "id": "1765620093850",
+          "name": "React",
+          "level": "Intermediate"
+        }
+      ],
+      "skillsToLearn": [
+        {
+          "id": "1765620096850",
+          "name": "Photography",
+          "level": "Intermediate"
+        },
+        {
+          "id": "1765620097712",
+          "name": "Spanish",
+          "level": "Intermediate"
+        }
+      ],
+      "credits": 50,
+      "joinedDate": "2025-12-13T09:53:33.411Z",
+      "isActive": true,
+      "role": "ux designer"
+    }
+  ],
+  "swaps": [
+    {
+      "id": "1",
+      "requesterId": "1",
+      "recipientId": "2",
+      "skillOffered": "JavaScript",
+      "skillRequested": "UI/UX Design",
+      "status": "pending",
+      "message": "I'd love to learn UI/UX from you!",
+      "createdAt": "2024-12-01T10:00:00.000Z",
+      "updatedAt": "2024-12-01T10:00:00.000Z"
+    },
+    {
+      "id": "2",
+      "requesterId": "2",
+      "recipientId": "1",
+      "skillOffered": "Figma",
+      "skillRequested": "React",
+      "status": "accepted",
+      "message": "Let's swap skills!",
+      "createdAt": "2024-11-15T10:00:00.000Z",
+      "updatedAt": "2024-11-20T10:00:00.000Z",
+      "scheduledDate": "2024-12-15T14:00:00.000Z"
+    },
+    {
+      "id": "02e8",
+      "requesterId": "1",
+      "receiverId": "2",
+      "learnSkill": "UI/UX Design",
+      "teachSkill": "JavaScript",
+      "message": "i world like to learn from you",
+      "availability": "Weekday Evenings",
+      "duration": "1 hour",
+      "preferences": {
+        "videoCalls": true,
+        "screenSharing": false,
+        "projectBased": false
+      },
+      "status": "pending",
+      "createdAt": "2025-12-13T07:41:40.079Z"
+    },
+    {
+      "id": "31fb",
+      "requesterId": "1",
+      "receiverId": "2",
+      "learnSkill": "UI/UX Design",
+      "teachSkill": "JavaScript",
+      "message": "i world like to learn from you",
+      "availability": "Weekday Evenings",
+      "duration": "1 hour",
+      "preferences": {
+        "videoCalls": true,
+        "screenSharing": false,
+        "projectBased": false
+      },
+      "status": "pending",
+      "createdAt": "2025-12-13T07:41:45.058Z"
+    }
+  ],
+  "groups": [
+    {
+      "id": "1",
+      "name": "Web Development Masters",
+      "description": "A community for web developers to share and learn",
+      "category": "Technology",
+      "avatar": "https://i.pravatar.cc/150?img=10",
+      "coverImage": "https://picsum.photos/800/300?random=1",
+      "creatorId": "1",
+      "members": [
+        "1",
+        "2"
+      ],
+      "memberCount": 2,
+      "isPrivate": false,
+      "createdAt": "2024-10-01T10:00:00.000Z"
+    },
+    {
+      "id": "2",
+      "name": "Design Enthusiasts",
+      "description": "For designers who love to collaborate and learn",
+      "category": "Design",
+      "avatar": "https://i.pravatar.cc/150?img=11",
+      "coverImage": "https://picsum.photos/800/300?random=2",
+      "creatorId": "2",
+      "members": [
+        "2"
+      ],
+      "memberCount": 1,
+      "isPrivate": false,
+      "createdAt": "2024-11-01T10:00:00.000Z"
+    }
+  ],
+  "conversations": [
+    {
+      "id": "1",
+      "participants": [
+        "1",
+        "2"
+      ],
+      "lastMessage": "Looking forward to our session!",
+      "lastMessageTime": "2024-12-10T14:30:00.000Z",
+      "unreadCount": 2
+    },
+    {
+      "id": "491b",
+      "participants": [
+        "1",
+        "2"
+      ],
+      "lastMessage": "Swap Request: JavaScript ⇄ UI/UX Design",
+      "lastMessageTime": "2025-12-13T07:41:40.180Z",
+      "isGroup": false,
+      "type": "swap_request",
+      "contextId": "02e8"
+    },
+    {
+      "id": "ac8c",
+      "participants": [
+        "1",
+        "2"
+      ],
+      "lastMessage": "Swap Request: JavaScript ⇄ UI/UX Design",
+      "lastMessageTime": "2025-12-13T07:41:45.077Z",
+      "isGroup": false,
+      "type": "swap_request",
+      "contextId": "31fb"
+    }
+  ],
+  "messages": [
+    {
+      "id": "1",
+      "conversationId": "1",
+      "senderId": "1",
+      "receiverId": "2",
+      "content": "Hi! Ready to start our skill swap?",
+      "timestamp": "2024-12-10T14:00:00.000Z",
+      "isRead": true
+    },
+    {
+      "id": "2",
+      "conversationId": "1",
+      "senderId": "2",
+      "receiverId": "1",
+      "content": "Yes! Looking forward to our session!",
+      "timestamp": "2024-12-10T14:30:00.000Z",
+      "isRead": false
+    },
+    {
+      "id": "2296",
+      "conversationId": "ac8c",
+      "senderId": "1",
+      "content": "Video Call started",
+      "type": "call",
+      "attachmentUrl": "SkillSwap-ac8c-1765617470584",
+      "timestamp": "2025-12-13T09:17:50.584Z",
+      "isRead": false
+    }
+  ],
+  "transactions": [
+    {
+      "id": "1",
+      "userId": "1",
+      "type": "credit",
+      "amount": 50,
+      "description": "Completed swap with Jane Smith",
+      "swapId": "2",
+      "timestamp": "2024-11-25T10:00:00.000Z",
+      "status": "completed"
+    },
+    {
+      "id": "2",
+      "userId": "2",
+      "type": "credit",
+      "amount": 50,
+      "description": "Completed swap with John Doe",
+      "swapId": "2",
+      "timestamp": "2024-11-25T10:00:00.000Z",
+      "status": "completed"
+    },
+    {
+      "id": "3",
+      "userId": "1",
+      "type": "debit",
+      "amount": 25,
+      "description": "Purchased premium features",
+      "timestamp": "2024-12-01T10:00:00.000Z",
+      "status": "completed"
+    }
+  ],
+  "posts": []
+}

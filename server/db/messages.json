@@ -1,0 +1,34 @@
+{
+    "conversations": [
+        {
+            "id": "1",
+            "participants": [
+                "1",
+                "2"
+            ],
+            "lastMessage": "Looking forward to our session!",
+            "lastMessageTime": "2024-12-10T14:30:00.000Z",
+            "unreadCount": 2
+        }
+    ],
+    "messages": [
+        {
+            "id": "1",
+            "conversationId": "1",
+            "senderId": "1",
+            "receiverId": "2",
+            "content": "Hi! Ready to start our skill swap?",
+            "timestamp": "2024-12-10T14:00:00.000Z",
+            "isRead": true
+        },
+        {
+            "id": "2",
+            "conversationId": "1",
+            "senderId": "2",
+            "receiverId": "1",
+            "content": "Yes! Looking forward to our session!",
+            "timestamp": "2024-12-10T14:30:00.000Z",
+            "isRead": false
+        }
+    ]
+}

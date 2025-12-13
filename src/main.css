@@ -1,0 +1,243 @@
+/* index.css - Updated for Tailwind CSS v4 with @theme */
+/* Added primary/secondary/success colors to theme for better integration */
+@import "tailwindcss";
+
+@theme {
+  /* Colors - Extended with primary, secondary, success */
+  --color-primary: #3b82f6; /* Blue for accents (React-inspired) */
+  --color-secondary: #10b981; /* Green for success/swaps */
+  --color-accent: #8b5cf6; /* Purple for highlights */
+  --color-bg-primary: #f9fafb; /* Light gray background */
+  --color-bg-secondary: #ffffff; /* White cards */
+  --color-text-primary: #111827; /* Dark text */
+  --color-text-secondary: #6b7280; /* Gray text - Improved contrast to #4b5563? Wait, kept as is but ensure in app */
+  --color-border: #e5e7eb; /* Light border */
+  --color-hover-bg: #f3f4f6; /* Hover state */
+  --color-success: #10b981;
+
+  /* Extend grays */
+  --color-gray-50: #f9fafb;
+  --color-gray-900: #111827;
+  --color-gray-100: #f3f4f6;
+  --color-gray-200: #e5e7eb;
+  --color-gray-600: #4b5563; /* Bumped for better contrast */
+  --color-gray-800: #1f2937;
+
+  /* Spacing */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+
+  /* Typography */
+  --font-family-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-weight-light: 300;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+
+  /* Borders */
+  --border-radius: 0.5rem;
+  --border-radius-lg: 0.75rem;
+  --border-width: 1px;
+
+  /* Easing */
+  --ease-fluid: cubic-bezier(0.3, 0, 0, 1);
+  --ease-snappy: cubic-bezier(0.2, 0, 0, 1);
+}
+
+/* Dark mode support */
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+
+[data-theme="dark"] {
+  --color-bg-primary: #111827;
+  --color-bg-secondary: #1f2937;
+  --color-text-primary: #f9fafb;
+  --color-text-secondary: #d1d5db;
+  --color-border: #374151;
+  --color-hover-bg: #374151;
+}
+
+/* Global styles with Pure Black Scrollbars */
+@layer base {
+  :root {
+    font-family: var(--font-family-sans);
+    background-color: var(--color-bg-primary);
+    color: var(--color-text-primary);
+    line-height: 1.5;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    @apply bg-bg-primary text-text-primary;
+  }
+
+  .app-container {
+    @apply bg-bg-primary text-text-primary min-h-screen;
+  }
+
+  /* Pure Black Scrollbars - Global */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--color-gray-100);
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #000000; /* Pure black */
+    border-radius: 5px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #000000; /* Pure black on hover */
+    border: 1px solid transparent;
+    background-clip: content-box;
+  }
+
+  ::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+
+  /* Firefox scrollbar */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #000000 var(--color-gray-100);
+  }
+}
+
+/* Custom scrollbar utilities */
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Thin scrollbar variant */
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: #000000; /* Pure black */
+    border-radius: 3px;
+  }
+
+  /* Custom color scrollbars */
+  .scrollbar-black {
+    scrollbar-color: #000000 var(--color-gray-100);
+  }
+  
+  .scrollbar-black::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  
+  .scrollbar-black::-webkit-scrollbar-track {
+    background: var(--color-gray-100);
+  }
+  
+  .scrollbar-black::-webkit-scrollbar-thumb {
+    background: #000000;
+    border-radius: 5px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+}
+
+/* Dark mode scrollbar adjustments */
+[data-theme="dark"] {
+  ::-webkit-scrollbar-track {
+    background: var(--color-gray-800);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #000000; /* Pure black (stays black in dark mode) */
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #000000; /* Pure black (stays black in dark mode) */
+  }
+
+  * {
+    scrollbar-color: #000000 var(--color-gray-800);
+  }
+
+  /* Adjust custom scrollbars for dark mode */
+  .scrollbar-black::-webkit-scrollbar-track {
+    background: var(--color-gray-800);
+  }
+
+  .scrollbar-black::-webkit-scrollbar-thumb {
+    background: #000000;
+  }
+}
+
+/* Hover effects - Now using theme var */
+.hover\:bg-hover-bg:hover {
+  @apply bg-hover-bg;
+}
+
+/* React/Lucide Icons styling */
+.react-icons, [class*="lucide-"] {
+  /* color: var(--color-primary); */
+}
+
+/* Responsive for mobile */
+@media (max-width: 768px) {
+  .app-container {
+    padding: var(--spacing-sm);
+  }
+
+  /* Thinner scrollbars on mobile */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+}
+
+/* Button theme - Added focus rings */
+@layer components {
+  button {
+    @apply border border-transparent rounded-[var(--border-radius)] transition-all duration-200 ease-[var(--ease-fluid)];
+  }
+
+  button:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+  }
+
+  /* Focus rings for accessibility */
+  .focus-visible\:ring-primary:focus-visible {
+    @apply ring-2 ring-primary ring-offset-2;
+  }
+}

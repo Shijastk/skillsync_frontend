@@ -1,0 +1,78 @@
+{
+    "users": [
+        {
+            "id": "1",
+            "email": "john.doe@example.com",
+            "password": "password123",
+            "firstName": "John",
+            "lastName": "Doe",
+            "avatar": "https://i.pravatar.cc/150?img=1",
+            "bio": "Passionate developer and teacher",
+            "location": "New York, USA",
+            "skillsToTeach": [
+                {
+                    "id": "1",
+                    "name": "JavaScript",
+                    "level": "Expert"
+                },
+                {
+                    "id": "2",
+                    "name": "React",
+                    "level": "Advanced"
+                }
+            ],
+            "skillsToLearn": [
+                {
+                    "id": "1",
+                    "name": "Python",
+                    "level": "Beginner"
+                },
+                {
+                    "id": "2",
+                    "name": "Machine Learning",
+                    "level": "Intermediate"
+                }
+            ],
+            "credits": 100,
+            "joinedDate": "2024-01-15T10:00:00.000Z",
+            "isActive": true
+        },
+        {
+            "id": "2",
+            "email": "jane.smith@example.com",
+            "password": "password123",
+            "firstName": "Jane",
+            "lastName": "Smith",
+            "avatar": "https://i.pravatar.cc/150?img=2",
+            "bio": "UI/UX Designer & Frontend Developer",
+            "location": "San Francisco, USA",
+            "skillsToTeach": [
+                {
+                    "id": "1",
+                    "name": "UI/UX Design",
+                    "level": "Expert"
+                },
+                {
+                    "id": "2",
+                    "name": "Figma",
+                    "level": "Advanced"
+                }
+            ],
+            "skillsToLearn": [
+                {
+                    "id": "1",
+                    "name": "JavaScript",
+                    "level": "Intermediate"
+                },
+                {
+                    "id": "2",
+                    "name": "React",
+                    "level": "Beginner"
+                }
+            ],
+            "credits": 150,
+            "joinedDate": "2024-02-20T10:00:00.000Z",
+            "isActive": true
+        }
+    ]
+}

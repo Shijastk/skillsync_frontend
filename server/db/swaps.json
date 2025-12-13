@@ -1,0 +1,27 @@
+{
+    "swaps": [
+        {
+            "id": "1",
+            "requesterId": "1",
+            "recipientId": "2",
+            "skillOffered": "JavaScript",
+            "skillRequested": "UI/UX Design",
+            "status": "pending",
+            "message": "I'd love to learn UI/UX from you!",
+            "createdAt": "2024-12-01T10:00:00.000Z",
+            "updatedAt": "2024-12-01T10:00:00.000Z"
+        },
+        {
+            "id": "2",
+            "requesterId": "2",
+            "recipientId": "1",
+            "skillOffered": "Figma",
+            "skillRequested": "React",
+            "status": "accepted",
+            "message": "Let's swap skills!",
+            "createdAt": "2024-11-15T10:00:00.000Z",
+            "updatedAt": "2024-11-20T10:00:00.000Z",
+            "scheduledDate": "2024-12-15T14:00:00.000Z"
+        }
+    ]
+}
