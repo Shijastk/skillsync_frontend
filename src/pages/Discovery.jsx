@@ -1,45 +1,56 @@
-import React, { useState, useMemo } from 'react';
-import { Search, MapPin, Grid3x3, List, SlidersHorizontal, X, Zap } from 'lucide-react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { Search, MapPin, Grid3x3, List, X, Zap } from 'lucide-react';
 import { Button, CustomSelect, Card } from '../Components/common';
 import UserCard from '../Components/common/UserCard';
 import RequestSwapModal from '../Components/modals/RequestSwapModal';
 import LoadingSpinner from '../Components/common/LoadingSpinner';
-import { useUsers } from '../hooks/useUsers';
+import { useUserSearch } from '../hooks/useUsers';
 import { useUserSwaps } from '../hooks/useSwaps';
 import { useAuthContext } from '../context/AuthContext';
 
 const Discovery = () => {
   // context
   const { user: currentUser } = useAuthContext();
-  const { data: usersData, isLoading: isLoadingUsers } = useUsers();
-  const { data: userSwaps, isLoading: isLoadingSwaps } = useUserSwaps(currentUser?.id);
-
-  const isLoading = isLoadingUsers || isLoadingSwaps;
 
   // State
   const [viewMode, setViewMode] = useState('grid');
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [selectedSkill, setSelectedSkill] = useState('');
   const [selectedLocation, setSelectedLocation] = useState('');
   const [showSwapModal, setShowSwapModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
-  const [showMobileFilters, setShowMobileFilters] = useState(false);
 
-  // Transform Data
-  const { users, uniqueSkills, uniqueLocations } = useMemo(() => {
-    if (!usersData) return { users: [], uniqueSkills: [], uniqueLocations: [] };
+  // Debounce Search
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(searchQuery), 500);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
-    // 1. Transform raw API users
-    const transformedUsers = usersData
+  // Data Fetching with Backend Search
+  const { data: searchResults, isLoading: isLoadingUsers } = useUserSearch({
+    search: debouncedSearch,
+    skill: selectedSkill !== 'All Skills' ? selectedSkill : '',
+    location: selectedLocation !== 'All Locations' ? selectedLocation : ''
+  });
+
+  const { data: userSwaps, isLoading: isLoadingSwaps } = useUserSwaps(currentUser?.id);
+
+  const isLoading = isLoadingUsers || isLoadingSwaps;
+
+  // Helper to transform user data
+  const transformUserData = (rawUsers) => {
+    if (!rawUsers) return [];
+    return rawUsers
       .filter(u => u.id !== currentUser?.id)
       .map(u => ({
         id: u.id,
         name: `${u.firstName} ${u.lastName}`,
         role: u.bio ? u.bio.split('.')[0] : 'Skill Swapper',
-        skills: u.skillsToTeach?.map(s => s.name) || [],
-        interests: u.skillsToLearn?.map(s => s.name) || [],
-        teaches: u.skillsToTeach?.map(s => s.name) || [],
-        wants: u.skillsToLearn?.map(s => s.name) || [],
+        skills: u.skillsToTeach?.map(s => s.name || s.title) || [],
+        interests: u.skillsToLearn?.map(s => s.name || s.title) || [],
+        teaches: u.skillsToTeach?.map(s => s.name || s.title) || [],
+        wants: u.skillsToLearn?.map(s => s.name || s.title) || [],
         location: u.location || 'Remote',
         availability: ['Weekends', 'Weekday Evenings'], // Mock
         rating: 5.0, // Mock
@@ -55,39 +66,28 @@ const Discovery = () => {
           ['pending', 'active', 'accepted', 'scheduled', 'in-progress'].includes(s.status)
         )?.status
       }));
+  };
 
-    // 2. Extract unique values
+  // Transform Data
+  const users = useMemo(() => transformUserData(searchResults?.users), [searchResults, currentUser, userSwaps]);
+  const unmatches = useMemo(() => transformUserData(searchResults?.unmatches), [searchResults, currentUser, userSwaps]);
+
+  // Extract Filters (from displayed users + unmatches to ensure options exist)
+  const { uniqueSkills, uniqueLocations } = useMemo(() => {
+    const allVisible = [...users, ...unmatches];
     const skillsSet = new Set();
     const locationsSet = new Set();
 
-    transformedUsers.forEach(u => {
+    allVisible.forEach(u => {
       u.skills.forEach(s => skillsSet.add(s));
       if (u.location) locationsSet.add(u.location);
     });
 
     return {
-      users: transformedUsers,
       uniqueSkills: Array.from(skillsSet).sort(),
       uniqueLocations: Array.from(locationsSet).sort(),
     };
-  }, [usersData, currentUser, userSwaps]);
-
-  // Apply filters
-  const filteredUsers = useMemo(() => {
-    return users.filter(user => {
-      const matchesSearch = !searchQuery ||
-        user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        user.role.toLowerCase().includes(searchQuery.toLowerCase());
-
-      const matchesSkill = !selectedSkill || selectedSkill === 'All Skills' ||
-        user.skills.some(skill => skill.includes(selectedSkill));
-
-      const matchesLocation = !selectedLocation || selectedLocation === 'All Locations' ||
-        user.location.includes(selectedLocation);
-
-      return matchesSearch && matchesSkill && matchesLocation;
-    });
-  }, [users, searchQuery, selectedSkill, selectedLocation]);
+  }, [users, unmatches]);
 
   const handleRequestSwap = (user) => {
     setSelectedUser(user);
@@ -112,7 +112,11 @@ const Discovery = () => {
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div>
               <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Discover</h1>
-              <p className="text-sm text-gray-500 mt-1">Found {filteredUsers.length} skill swappers match your vibe</p>
+              <p className="text-sm text-gray-500 mt-1">
+                {users.length > 0
+                  ? `Found ${users.length} skill swappers match your vibe`
+                  : 'Explore the community'}
+              </p>
             </div>
 
             {/* Search Bar */}
@@ -184,12 +188,12 @@ const Discovery = () => {
 
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {filteredUsers.length > 0 ? (
+        {users.length > 0 ? (
           <div className={viewMode === 'grid'
             ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'
             : 'space-y-4 max-w-3xl mx-auto'
           }>
-            {filteredUsers.map(user => (
+            {users.map(user => (
               <UserCard
                 key={user.id}
                 user={user}
@@ -199,23 +203,45 @@ const Discovery = () => {
             ))}
           </div>
         ) : (
-          <div className="text-center py-20">
-            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-400">
-              <Search size={32} />
+          <div className="space-y-8">
+            <div className="text-center py-8 bg-white rounded-2xl border border-gray-100 shadow-sm">
+              <div className="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-3 text-gray-400">
+                <Search size={24} />
+              </div>
+              <h3 className="text-base font-semibold text-gray-900 mb-1">No exact matches found</h3>
+              <p className="text-sm text-gray-500 mb-4">
+                {unmatches.length > 0
+                  ? "Showing all skill swappers instead. Try adjusting your filters!"
+                  : "We couldn't find any results. Try checking your spelling or clearing filters."}
+              </p>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={clearFilters}
+              >
+                Clear Filters
+              </Button>
             </div>
-            <h3 className="text-lg font-bold text-gray-900 mb-1">No matches found</h3>
-            <p className="text-gray-500 mb-6">We couldn't find anyone matching your current filters.</p>
-            <Button
-              variant="outline"
-              onClick={clearFilters}
-            >
-              Clear Filters
-            </Button>
+
+            {/* Show Unmatches (Recommendations from Backend) */}
+            {unmatches.length > 0 && (
+              <div className={viewMode === 'grid'
+                ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'
+                : 'space-y-4 max-w-3xl mx-auto'
+              }>
+                {unmatches.map(user => (
+                  <UserCard
+                    key={user.id}
+                    user={user}
+                    viewMode={viewMode}
+                    onRequest={handleRequestSwap}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>
-
-      {/* Mobile Filters Modal placeholder for completeness if needed, but toolbar handles it reasonably well now */}
 
       {/* Request Swap Modal */}
       {showSwapModal && selectedUser && (

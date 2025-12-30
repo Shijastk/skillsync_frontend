@@ -11,8 +11,9 @@ import {
   RefreshCw,
 } from "lucide-react";
 import React, { useState, useRef, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuthContext } from '../context/AuthContext';
+import { useNotifications } from '../hooks/useNotifications';
 import CreateGroupModal from './modals/CreateGroupModal';
 
 const Navbar = () => {
@@ -20,6 +21,7 @@ const Navbar = () => {
   const { pathname } = useLocation();
   const firstPath = pathname.split("/")[1];
   const { user, logout } = useAuthContext();
+  const { data: notificationsData } = useNotifications();
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [avatarOpen, setAvatarOpen] = useState(false);
@@ -31,6 +33,9 @@ const Navbar = () => {
   const avatarRef = useRef(null);
   const notifRef = useRef(null);
   const closeTimeoutRef = useRef(null);
+  const navigate = useNavigate();
+
+  const notifications = notificationsData || [];
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -75,7 +80,7 @@ const Navbar = () => {
   };
 
   const navItems = [
-    { id: "", label: "Feed" },
+    { id: "home", label: "Feed" },
     { id: "discover", label: "Discover" },
     { id: "groups", label: "Groups" },
     { id: "messages", label: "Messages" },
@@ -83,13 +88,7 @@ const Navbar = () => {
     { id: "schedule", label: "Schedule" },
   ];
 
-  // Mock Notifications - In real app, fetch from API
-  const notifications = [
-    { id: 1, text: "Sarah accepted your swap request 🎉", time: "2 min ago" },
-    { id: 2, text: "New message from Marcus 💬", time: "1 hour ago" },
-    { id: 3, text: "Your post got 24 likes ❤️", time: "3 hours ago" },
-    { id: 4, text: "Skill milestone unlocked! 🏆", time: "1 day ago" },
-  ];
+
 
   const userInitials = (user?.firstName?.[0] || '') + (user?.lastName?.[0] || 'U');
 
@@ -99,7 +98,7 @@ const Navbar = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex justify-between items-center">
           {/* Logo */}
           <div className="flex items-center gap-10">
-            <Link to="/" className="text-2xl font-bold text-gray-900">
+            <Link to="/home" className="text-2xl font-bold text-gray-900">
               SkillSwap
             </Link>
 
@@ -194,7 +193,7 @@ const Navbar = () => {
             {/* Avatar */}
             <div className="relative" ref={avatarRef}>
               <button
-                onClick={() => setAvatarOpen(!avatarOpen)}
+                onClick={() => navigate("/profile")}
                 onMouseEnter={handleMouseEnter}
                 onMouseLeave={handleMouseLeave}
                 className="flex items-center gap-2 p-1 rounded-lg hover:bg-gray-100 transition-colors"
@@ -318,8 +317,8 @@ const Navbar = () => {
           </button>
         )}
 
-        {/* Default FAB behavior for other pages (or if we want a menu everywhere) */}
-        {activeNav !== 'groups' && (
+        {/* Default FAB behavior (hide on groups and messages) */}
+        {activeNav !== 'groups' && activeNav !== 'messages' && (
           <Link to="/community" className="bg-black text-white w-14 h-14 rounded-full flex items-center justify-center shadow-xl hover:shadow-2xl transition-all">
             <Plus size={26} />
           </Link>

@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Search as SearchIcon,
   Settings,
@@ -10,10 +11,16 @@ import {
   Plus,
 } from "lucide-react";
 import CreateGroupModal from "../Components/modals/CreateGroupModal";
-import { useGroups } from "../hooks/useGroups";
+import { useGroups, useJoinGroup } from "../hooks/useGroups";
+import { useAuthContext } from "../context/AuthContext";
+import { useToast } from "../context/ToastContext";
 import LoadingSpinner from "../Components/common/LoadingSpinner";
 
 const Groups = () => {
+  const navigate = useNavigate();
+  const { user: currentUser } = useAuthContext();
+  const { success, error: toastError } = useToast();
+  const joinGroupMutation = useJoinGroup();
   const [viewMode, setViewMode] = useState("grid"); // 'grid' or 'list'
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
@@ -81,18 +88,29 @@ const Groups = () => {
     { id: "3star", label: "⭐⭐⭐ 3.0+" },
   ];
 
-  // Close mobile filters on outside click
-  const handleBackdropClick = (e) => {
-    if (e.target === e.currentTarget) {
-      setIsMobileFiltersOpen(false);
+  const handleJoinGroup = async (e, groupId) => {
+    e.stopPropagation();
+    if (!currentUser) {
+      toastError("Please login to join groups");
+      return;
     }
+
+    try {
+      await joinGroupMutation.mutateAsync(groupId);
+      success("Joined group successfully!");
+    } catch (err) {
+      toastError("Failed to join group");
+    }
+  };
+
+  const handleViewGroup = (groupId) => {
+    navigate(`/groups/${groupId}`);
   };
 
   if (isLoading) return <LoadingSpinner />;
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 font-sans">
-
       {/* Hero */}
       <section className="bg-white py-10 px-6 border-b border-gray-200">
         <div className="max-w-7xl mx-auto">
@@ -413,95 +431,123 @@ const Groups = () => {
                   : "space-y-4"
               }
             >
-              {groups.map((group) => (
-                <div
-                  key={group.id}
-                  className={`bg-white rounded-2xl border border-gray-200 overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer ${viewMode === "list" ? "p-5 flex gap-5 items-start" : ""
-                    }`}
-                >
-                  {/* Banner */}
-                  <div className={`${group.bannerColor || 'bg-gray-200'} relative h-32`}>
-                    <div
-                      className={`absolute -bottom-10 left-5 w-20 h-20 rounded-full border-4 border-white flex items-center justify-center text-white text-2xl font-bold ${group.avatarColor || 'bg-gray-400'}`}
-                    >
-                      <Users size={32} />
-                    </div>
-                    <div className="absolute top-3 right-3 px-3 py-1 bg-white rounded-xl text-xs font-bold flex items-center gap-1">
-                      <Star
-                        size={12}
-                        className="text-yellow-400 fill-yellow-400"
-                      />
-                      {group.rating || 0}
-                    </div>
-                  </div>
+              {groups.map((group) => {
+                const isMember = group.members?.some(m =>
+                  (m.id === currentUser?.id) || (m._id === currentUser?.id)
+                );
 
+                return (
                   <div
-                    className={
-                      viewMode === "list" ? "flex-1 min-w-0" : "pt-12 px-5 pb-5"
-                    }
+                    key={group.id}
+                    className={`bg-white rounded-2xl border border-gray-200 overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer ${viewMode === "list" ? "p-5 flex gap-5 items-start" : ""
+                      }`}
                   >
-                    <div className="mb-3">
-                      <h3 className="text-lg font-semibold mb-1">{group.name}</h3>
-                      <p className="text-sm text-gray-600 mb-1">
-                        {group.description}
-                      </p>
-                      <div className="flex items-center gap-1 text-xs text-gray-500 mb-2">
-                        <Users size={14} />
-                        {group.memberCount || 0} members • {group.activity || 'New'} activity
+                    {/* Banner */}
+                    <div className={`${group.bannerColor || 'bg-gray-200'} relative h-32`}>
+                      <div
+                        className={`absolute -bottom-10 left-5 w-20 h-20 rounded-full border-4 border-white flex items-center justify-center text-white text-2xl font-bold ${group.avatarColor || 'bg-gray-400'}`}
+                      >
+                        <Users size={32} />
+                      </div>
+                      <div className="absolute top-3 right-3 px-3 py-1 bg-white rounded-xl text-xs font-bold flex items-center gap-1">
+                        <Star
+                          size={12}
+                          className="text-yellow-400 fill-yellow-400"
+                        />
+                        {group.rating || 0}
                       </div>
                     </div>
 
-                    {/* Skills/Tags */}
-                    <div className="flex flex-wrap gap-1.5 mb-4">
-                      {(group.skills || []).map((skill, index) => (
-                        <span
-                          key={index}
-                          className="px-3 py-1 bg-gray-100 rounded-full text-xs font-medium text-gray-600"
-                        >
-                          {skill}
-                        </span>
-                      ))}
-                    </div>
-
-                    {/* Meta */}
-                    <div className="flex justify-around py-3 border-t border-gray-100 mb-4 text-center">
-                      <div>
-                        <div className="text-lg font-semibold">
-                          {group.memberCount || 0}
-                        </div>
-                        <div className="text-xs uppercase text-gray-500">
-                          Members
-                        </div>
-                      </div>
-                      <div>
-                        <div className="text-lg font-semibold">
-                          {group.rating || 0}
-                        </div>
-                        <div className="text-xs uppercase text-gray-500">
-                          Rating
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Actions */}
                     <div
-                      className={`grid ${viewMode === "list"
-                        ? "grid-cols-1 gap-2"
-                        : "grid-cols-2 gap-2"
-                        }`}
+                      className={
+                        viewMode === "list" ? "flex-1 min-w-0" : "pt-12 px-5 pb-5"
+                      }
                     >
-                      <button className="py-2.5 border-2 border-gray-200 rounded-lg text-sm font-medium hover:border-gray-900 transition-colors">
-                        <MessageCircle size={16} className="inline mr-2" />
-                        View
-                      </button>
-                      <button className="py-2.5 bg-gray-900 text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors">
-                        <RefreshCw size={16} className="inline mr-2" />
-                        Join
-                      </button>
+                      <div className="mb-3">
+                        <h3 className="text-lg font-semibold mb-1">{group.name}</h3>
+                        <p className="text-sm text-gray-600 mb-1">
+                          {group.description}
+                        </p>
+                        <div className="flex items-center gap-1 text-xs text-gray-500 mb-2">
+                          <Users size={14} />
+                          {group.memberCount || 0} members • {group.activity || 'New'} activity
+                        </div>
+                      </div>
+
+                      {/* Skills/Tags */}
+                      <div className="flex flex-wrap gap-1.5 mb-4">
+                        {(group.skills || []).map((skill, index) => (
+                          <span
+                            key={index}
+                            className="px-3 py-1 bg-gray-100 rounded-full text-xs font-medium text-gray-600"
+                          >
+                            {skill}
+                          </span>
+                        ))}
+                      </div>
+
+                      {/* Meta */}
+                      <div className="flex justify-around py-3 border-t border-gray-100 mb-4 text-center">
+                        <div>
+                          <div className="text-lg font-semibold">
+                            {group.memberCount || 0}
+                          </div>
+                          <div className="text-xs uppercase text-gray-500">
+                            Members
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-lg font-semibold">
+                            {group.rating || 0}
+                          </div>
+                          <div className="text-xs uppercase text-gray-500">
+                            Rating
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Actions */}
+
+                      <div
+                        className={`grid ${viewMode === "list"
+                          ? "grid-cols-1 gap-2"
+                          : "grid-cols-2 gap-2"
+                          }`}
+                      >
+                        <button
+                          onClick={() => handleViewGroup(group.id)}
+                          className="py-2.5 border-2 border-gray-200 rounded-lg text-sm font-medium hover:border-gray-900 transition-colors"
+                        >
+                          <MessageCircle size={16} className="inline mr-2" />
+                          View
+                        </button>
+
+                        <button
+                          onClick={(e) => isMember ? handleViewGroup(group.id) : handleJoinGroup(e, group.id)}
+                          disabled={joinGroupMutation.isPending && joinGroupMutation.variables === group.id}
+                          className={`py-2.5 rounded-lg text-sm font-medium transition-colors flex items-center justify-center
+                          ${isMember
+                              ? "bg-green-100 text-green-700 hover:bg-green-200"
+                              : "bg-gray-900 text-white hover:bg-gray-800"
+                            }`}
+                        >
+                          {isMember ? (
+                            <>
+                              <Users size={16} className="inline mr-2" />
+                              Joined
+                            </>
+                          ) : (
+                            <>
+                              <RefreshCw size={16} className={`inline mr-2 ${joinGroupMutation.isPending && joinGroupMutation.variables === group.id ? 'animate-spin' : ''}`} />
+                              {joinGroupMutation.isPending && joinGroupMutation.variables === group.id ? 'Joining...' : 'Join'}
+                            </>
+                          )}
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           ) : (
             <div className="text-center py-10 bg-white rounded-2xl border border-gray-200">

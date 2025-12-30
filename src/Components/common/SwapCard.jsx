@@ -68,6 +68,7 @@ const SwapCard = ({ swap }) => {
                     {participants.map((participant, index) => (
                         <div key={index} className="text-center p-4 bg-gray-50 rounded-lg">
                             <Avatar
+                                src={participant.avatar}
                                 initials={participant.initials}
                                 name={participant.name}
                                 size="md"
@@ -122,6 +123,7 @@ const SwapCard = ({ swap }) => {
                             {index > 0 && <div className="text-2xl text-gray-300 mx-2">⟷</div>}
                             <div className="flex items-center gap-3 min-w-0">
                                 <Avatar
+                                    src={participant.avatar}
                                     initials={participant.initials}
                                     name={participant.name}
                                     size="lg"

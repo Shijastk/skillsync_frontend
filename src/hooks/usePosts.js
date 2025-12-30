@@ -1,10 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { postsService } from '../services/api';
 
-export const usePosts = () => {
+export const usePosts = (isFeed = true) => {
     return useQuery({
-        queryKey: ['posts'],
-        queryFn: postsService.getAll,
+        queryKey: ['posts', { type: isFeed ? 'feed' : 'all' }],
+        queryFn: () => isFeed ? postsService.getFeed() : postsService.getAll(),
     });
 };
 
@@ -31,7 +31,7 @@ export const useAddComment = () => {
 export const useLikePost = () => {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: ({ id, likes }) => postsService.update(id, { likes }),
+        mutationFn: (postId) => postsService.like(postId),  // ✅ Use like endpoint
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['posts'] });
         },

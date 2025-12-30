@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import {
     MapPin, Calendar, Star, Trophy, Code2, Database,
     Palette, Cloud, BarChart3, Container, FileCode,
-    MessageCircle, Share2, Plus, Check
+    MessageCircle, Share2, Plus, Check, Edit2, Save, X
 } from 'lucide-react';
 import {
     Avatar, Badge, Button, Card, Rating, Tabs
@@ -16,6 +16,7 @@ import LoadingSpinner from '../common/LoadingSpinner';
 import { useAuthContext } from '../../context/AuthContext';
 import { useUser, useUpdateUser } from '../../hooks/useUsers';
 import { useUserSwaps } from '../../hooks/useSwaps';
+import { useQueryClient } from '@tanstack/react-query';
 
 /**
  * UnifiedProfile - Single component for both own profile and public profiles
@@ -24,7 +25,8 @@ import { useUserSwaps } from '../../hooks/useSwaps';
  */
 const UnifiedProfile = ({ isOwnProfile: propIsOwnProfile }) => {
     const { userId } = useParams();
-    const { user: currentUser } = useAuthContext();
+    const { user: currentUser, updateUser } = useAuthContext();
+    const queryClient = useQueryClient();
 
     // Determine if viewing own profile
     // Note: If userId param matches currentUser.id, it's also own profile
@@ -32,14 +34,18 @@ const UnifiedProfile = ({ isOwnProfile: propIsOwnProfile }) => {
 
     // Fetch data
     const targetUserId = isOwnProfile ? currentUser?.id : userId;
-    const { data: userData, isLoading: isLoadingUser } = useUser(targetUserId);
-    const { data: swapsData } = useUserSwaps(targetUserId);
+    const { data: userData, isLoading: isLoadingUser, refetch: refetchUser } = useUser(targetUserId);
+
+    // Only fetch swaps for own profile (backend endpoint only returns current user's swaps)
+    const { data: swapsData } = useUserSwaps();
 
     // Mutations
     const updateUserMutation = useUpdateUser();
 
     // State management
     const [activeTab, setActiveTab] = useState('overview');
+    const [isEditing, setIsEditing] = useState(false);
+    const [editForm, setEditForm] = useState({});
     const [showSkillModal, setShowSkillModal] = useState(false);
     const [showLearningModal, setShowLearningModal] = useState(false);
     const [showSwapModal, setShowSwapModal] = useState(false);
@@ -62,10 +68,10 @@ const UnifiedProfile = ({ isOwnProfile: propIsOwnProfile }) => {
 
             // Skills
             skillsOffer: {
-                'Expertise': (userData.skillsToTeach || []).map(s => s.name)
+                'Expertise': (userData.skillsToTeach || []).map(s => s.title || s.name) // Support both old and new schema
             },
             skillsLearn: {
-                'Interests': (userData.skillsToLearn || []).map(s => s.name)
+                'Interests': (userData.skillsToLearn || []).map(s => s.title || s.name) // Support both old and new schema
             },
 
             // Portfolio (safeguard if missing in DB)
@@ -85,6 +91,7 @@ const UnifiedProfile = ({ isOwnProfile: propIsOwnProfile }) => {
             }
         };
     }, [userData, swapsData])
+    console.log(user," user")
 
     const activeSwap = useMemo(() => {
         if (isOwnProfile || !swapsData || !currentUser) return null;
@@ -98,46 +105,97 @@ const UnifiedProfile = ({ isOwnProfile: propIsOwnProfile }) => {
     const swapStatus = activeSwap?.status;
 
     // Handlers
-    const handleSkillSave = async (data) => {
-        // data: { skill: "React", level: "Expert", category: "Frontend" }
-        // We need to add to skillsToTeach
-        const newSkill = {
-            id: Date.now(),
-            name: data.skill,
-            level: data.level
-        };
+    const handleStartEdit = () => {
+        setEditForm({
+            firstName: userData.firstName || '',
+            lastName: userData.lastName || '',
+            bio: userData.bio || '',
+            location: userData.location || '',
+            // If title is derived from bio split, we might want a dedicated field or just edit bio. 
+            // For now assuming we edit bio and location. Name is split.
+        });
+        setIsEditing(true);
+    };
 
-        const updatedSkills = [...(userData.skillsToTeach || []), newSkill];
+    const handleCancelEdit = () => {
+        setIsEditing(false);
+        setEditForm({});
+    };
 
+    const handleSaveProfile = async () => {
         try {
             await updateUserMutation.mutateAsync({
                 id: userData.id,
-                data: { skillsToTeach: updatedSkills } // Patch update
+                data: editForm
             });
-            setShowSkillModal(false);
-            setEditingSkill(null);
+            setIsEditing(false);
+
+            // Sync AuthContext if needed
+            if (isOwnProfile) {
+                // Note: we can't use hook here inside function, but we have updateUser from calling useAuthContext earlier
+                // Let's use the one from scope (needs to be added to destructuring above)
+                updateUser({ ...currentUser, ...editForm });
+            }
         } catch (error) {
-            console.error("Failed to update skills", error);
+            console.error("Failed to update profile", error);
+            alert("Failed to update profile");
         }
     };
 
-    const handleLearningGoalSave = async (data) => {
-        const newSkill = {
-            id: Date.now(),
-            name: data.skill || data.goal, // Adjust based on modal output
-            level: 'Beginner'
-        };
+    // Reset editing state when navigating to clear conflicts
+    React.useEffect(() => {
+        setIsEditing(false);
+        setEditForm({});
+    }, [userId, targetUserId]);
 
-        const updatedSkills = [...(userData.skillsToLearn || []), newSkill];
+    const handleInputChange = (field, value) => {
+        setEditForm(prev => ({ ...prev, [field]: value }));
+    };
 
+    const handleSkillSave = async (skillData) => {
         try {
-            await updateUserMutation.mutateAsync({
-                id: userData.id,
-                data: { skillsToLearn: updatedSkills }
-            });
+            // Import the usersService
+            const { usersService } = await import('../../services/api');
+
+            // Call the new API endpoint with all skill data
+            await usersService.addSkillToTeach(skillData);
+
+            // Invalidate queries - React Query will refetch automatically in background
+            queryClient.invalidateQueries({ queryKey: ['user', targetUserId] });
+
+            // If viewing own profile, sync AuthContext
+            if (isOwnProfile) {
+                queryClient.invalidateQueries({ queryKey: ['currentUser'] });
+            }
+
+            setShowSkillModal(false);
+            setEditingSkill(null);
+        } catch (error) {
+            console.error("Failed to add skill", error);
+            alert(error.response?.data?.message || "Failed to add skill. Please try again.");
+        }
+    };
+
+    const handleLearningGoalSave = async (skillData) => {
+        try {
+            // Import the usersService
+            const { usersService } = await import('../../services/api');
+
+            // Call the new API endpoint with all skill data
+            await usersService.addSkillToLearn(skillData);
+
+            // Invalidate queries - React Query will refetch automatically in background
+            queryClient.invalidateQueries({ queryKey: ['user', targetUserId] });
+
+            // If viewing own profile, sync AuthContext
+            if (isOwnProfile) {
+                queryClient.invalidateQueries({ queryKey: ['currentUser'] });
+            }
+
             setShowLearningModal(false);
         } catch (error) {
-            console.error("Failed to update learning goals", error);
+            console.error("Failed to add learning goal", error);
+            alert(error.response?.data?.message || "Failed to add learning goal. Please try again.");
         }
     };
 
@@ -191,7 +249,43 @@ const UnifiedProfile = ({ isOwnProfile: propIsOwnProfile }) => {
         { id: 'badges', label: 'Badges', icon: Star },
     ];
 
-    if (isLoadingUser || !user) return <LoadingSpinner />;
+    // Debug logging
+    console.log('Profile Debug:', {
+        isLoadingUser,
+        userData,
+        user,
+        targetUserId,
+        currentUser
+    });
+
+    if (isLoadingUser) {
+        return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                <LoadingSpinner />
+            </div>
+        );
+    }
+
+    // Only show "not found" if we're not loading AND userData is null
+    // (userData can be temporarily null during refetch)
+    if (!userData && !isLoadingUser) {
+        return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                <div className="text-center">
+                    <h2 className="text-2xl font-bold text-gray-900 mb-2">User Not Found</h2>
+                    <p className="text-gray-600">The user you're looking for doesn't exist.</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (!user) {
+        return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                <LoadingSpinner />
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-gray-50">
@@ -199,54 +293,166 @@ const UnifiedProfile = ({ isOwnProfile: propIsOwnProfile }) => {
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
                     {/* Profile Header */}
-                    <Card className="mb-6">
+                    <Card className="mb-6 shadow-lg border-gray-100">
                         <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 items-start lg:items-center mb-8">
-                            <Avatar
-                                name={user.name}
-                                initials={user.initials}
-                                size="2xl"
-                                showStatus={!isOwnProfile}
-                                status="online"
-                            />
+                            <div className="relative">
+                                <Avatar
+                                    name={user?.name}
+                                    initials={user?.initials}
+                                    size="2xl"
+                                    showStatus={!isOwnProfile}
+                                    status="online"
+                                    className="ring-4 ring-white shadow-md"
+                                />
+                                {!isOwnProfile && (
+                                    <div className="absolute -bottom-2 -right-2 bg-white border border-gray-200 rounded-full p-1 shadow-sm">
+                                        <div className="w-4 h-4 bg-green-500 rounded-full"></div>
+                                    </div>
+                                )}
+                            </div>
 
-                            <div className="flex-1">
-                                <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-2">
-                                    {user.name}
-                                </h1>
-                                <p className="text-lg text-gray-600 mb-3">{user.title}</p>
+                            <div className="flex-1 w-full">
+                                {isOwnProfile && isEditing ? (
+                                    <div className="space-y-4  animate-in fade-in duration-200">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                            <div className="space-y-1">
+                                                <label className="text-xs font-medium text-gray-700 ml-1">First Name</label>
+                                                <input
+                                                    type="text"
+                                                    value={editForm.firstName}
+                                                    onChange={(e) => handleInputChange('firstName', e.target.value)}
+                                                    className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-black outline-none transition-all text-sm bg-white"
+                                                    placeholder="First Name"
+                                                />
+                                            </div>
+                                            <div className="space-y-1">
+                                                <label className="text-xs font-medium text-gray-700 ml-1">Last Name</label>
+                                                <input
+                                                    type="text"
+                                                    value={editForm.lastName}
+                                                    onChange={(e) => handleInputChange('lastName', e.target.value)}
+                                                    className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-black outline-none transition-all text-sm bg-white"
+                                                    placeholder="Last Name"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-xs font-medium text-gray-700 ml-1">Brief Bio / Title</label>
+                                            <input
+                                                type="text"
+                                                value={editForm.bio}
+                                                onChange={(e) => handleInputChange('bio', e.target.value)}
+                                                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-black outline-none transition-all text-sm bg-white"
+                                                placeholder="e.g. Senior Developer specializing in React..."
+                                            />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-xs font-medium text-gray-700 ml-1">Location</label>
+                                            <input
+                                                type="text"
+                                                value={editForm.location}
+                                                onChange={(e) => handleInputChange('location', e.target.value)}
+                                                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-black outline-none transition-all text-sm bg-white"
+                                                placeholder="e.g. New York, USA"
+                                            />
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <>
+                                        <div className="mb-2">
+                                            <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 tracking-tight">
+                                                {user?.name}
+                                            </h1>
+                                            <p className="text-base text-gray-600 mt-1 font-medium">{user?.title}</p>
+                                        </div>
+                                        <div className="flex items-center gap-3 text-gray-500 mb-6">
+                                            <div className="flex items-center gap-1.5 text-sm">
+                                                <MapPin size={14} className="text-gray-400" />
+                                                <span className="text-gray-600">{user?.location}</span>
+                                            </div>
+                                            <div className="w-1 h-1 rounded-full bg-gray-300"></div>
+                                            <div className="text-sm text-gray-500">
+                                                Member since <span className="text-gray-700 font-medium">{user?.joinDate}</span>
+                                            </div>
+                                        </div>
+                                    </>
+                                )}
 
-                                <div className="flex items-center gap-2 text-gray-500 mb-6">
-                                    <MapPin size={16} />
-                                    <span>{user.location}</span>
-                                    <span>•</span>
-                                    <span>Member since {user.joinDate}</span>
-                                </div>
-
-                                <div className="flex flex-wrap gap-3">
+                                <div className="flex flex-wrap gap-2 mt-4 lg:mt-0">
                                     {isOwnProfile ? (
-                                        <>
-                                            <Button variant="primary" leftIcon={<Plus size={16} />} onClick={() => setShowSkillModal(true)}>
-                                                Add Skill
-                                            </Button>
-                                            <Button variant="outline" leftIcon={<Share2 size={16} />}>
-                                                Share Profile
-                                            </Button>
-                                        </>
+                                        isEditing ? (
+                                            <>
+                                                <Button
+                                                    variant="primary"
+                                                    className="bg-black hover:bg-gray-800 text-white border-black shadow-sm hover:shadow-md transition-all duration-200"
+                                                    leftIcon={<Save size={14} />}
+                                                    onClick={handleSaveProfile}
+                                                >
+                                                    Save Changes
+                                                </Button>
+                                                <Button
+                                                    variant="outline"
+                                                    className="border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400"
+                                                    leftIcon={<X size={14} />}
+                                                    onClick={handleCancelEdit}
+                                                >
+                                                    Cancel
+                                                </Button>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Button
+                                                    variant="secondary"
+                                                    className="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 shadow-sm"
+                                                    leftIcon={<Edit2 size={14} />}
+                                                    onClick={handleStartEdit}
+                                                >
+                                                    Edit Profile
+                                                </Button>
+                                                <Button
+                                                    variant="primary"
+                                                    className="bg-black hover:bg-gray-800 text-white border-black shadow-sm hover:shadow-md"
+                                                    leftIcon={<Plus size={14} />}
+                                                    onClick={() => setShowSkillModal(true)}
+                                                >
+                                                    Add Skill
+                                                </Button>
+                                                <Button
+                                                    variant="outline"
+                                                    className="border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400"
+                                                    leftIcon={<Share2 size={14} />}
+                                                >
+                                                    Share Profile
+                                                </Button>
+                                            </>
+                                        )
                                     ) : (
                                         <>
                                             <Button
                                                 variant={hasActiveSwap ? "secondary" : "primary"}
+                                                className={`${hasActiveSwap ?
+                                                    'bg-gray-100 border-gray-300 text-gray-600' :
+                                                    'bg-black hover:bg-gray-800 text-white border-black'
+                                                    } shadow-sm hover:shadow-md transition-all duration-200`}
                                                 onClick={() => !hasActiveSwap && setShowSwapModal(true)}
                                                 disabled={hasActiveSwap}
-                                                leftIcon={hasActiveSwap && <Check size={16} />}
+                                                leftIcon={hasActiveSwap && <Check size={14} />}
                                             >
-                                                {hasActiveSwap ? (swapStatus === 'pending' ? 'Requested' : 'Active Swap') : 'Start Swap'}
+                                                {hasActiveSwap ? (swapStatus === 'pending' ? 'Request Sent' : 'Active Swap') : 'Start Swap'}
                                             </Button>
-                                            <Button variant="outline" leftIcon={<MessageCircle size={16} />}>
+                                            <Button
+                                                variant="outline"
+                                                className="border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400"
+                                                leftIcon={<MessageCircle size={14} />}
+                                            >
                                                 Message
                                             </Button>
-                                            <Button variant="ghost" leftIcon={<Share2 size={16} />}>
-                                                Share Profile
+                                            <Button
+                                                variant="ghost"
+                                                className="text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                                                leftIcon={<Share2 size={14} />}
+                                            >
+                                                Share
                                             </Button>
                                         </>
                                     )}
@@ -264,10 +470,10 @@ const UnifiedProfile = ({ isOwnProfile: propIsOwnProfile }) => {
                                     { label: 'Success Rate', value: `${user.stats.successRate}%` },
                                 ].map((stat, idx) => (
                                     <div key={idx} className="text-center">
-                                        <div className="text-3xl font-bold text-gray-900 mb-1">
+                                        <div className="text-2xl font-bold text-gray-900 mb-1">
                                             {stat.value}
                                         </div>
-                                        <div className="text-xs text-gray-500 uppercase tracking-wider">
+                                        <div className="text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             {stat.label}
                                         </div>
                                     </div>

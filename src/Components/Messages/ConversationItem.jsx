@@ -20,6 +20,7 @@ const ConversationItem = ({
     swapDetails,
   } = conversation;
 
+
   return (
     <div
       onClick={() => {
@@ -33,8 +34,22 @@ const ConversationItem = ({
     >
       <div className="flex gap-3">
         <div className="relative flex-shrink-0">
-          <div className="w-12 h-12 bg-gradient-to-br from-gray-700 to-gray-900 rounded-full flex items-center justify-center text-white font-semibold text-lg">
-            {avatar}
+          <div className="w-12 h-12 bg-gradient-to-br from-gray-700 to-gray-900 rounded-full flex items-center justify-center text-white font-semibold text-lg overflow-hidden">
+            {avatar && (avatar.startsWith('http://') || avatar.startsWith('https://')) ? (
+              <img
+                src={avatar}
+                alt={name}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  // If image fails to load, show initials instead
+                  e.target.style.display = 'none';
+                  e.target.parentElement.textContent = name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || '?';
+                }}
+              />
+            ) : (
+              // Show initials (first letters of name)
+              name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || avatar || '?'
+            )}
           </div>
           <div
             className={`absolute bottom-0 right-0 w-3 h-3 ${STATUS_COLORS[status]} border-2 border-white rounded-full`}
@@ -66,11 +81,12 @@ const ConversationItem = ({
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2 min-w-0">
               <span
-                className={`px-2 py-0.5 text-xs font-medium rounded-full flex-shrink-0 ${
-                  SWAP_STATUS_COLORS[swapDetails.status]
-                }`}
+                className={`px-2 py-0.5 text-xs font-medium rounded-full flex-shrink-0 ${SWAP_STATUS_COLORS[swapDetails.status]
+                  }`}
               >
-                {swapDetails.status}
+                {swapDetails.status === 'pending'
+                  ? (swapDetails.isIncomingRequest ? 'Incoming Request' : 'Pending Approval')
+                  : swapDetails.status}
               </span>
               <span className="text-xs text-gray-500 truncate">
                 {swapDetails.skillToLearn}

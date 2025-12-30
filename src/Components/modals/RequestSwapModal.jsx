@@ -39,13 +39,16 @@ const RequestSwapModal = ({ isOpen: externalIsOpen, onClose: externalOnClose, ta
     useEffect(() => {
         if (isOpen && targetUser && currentUser) {
             // Smart match: What I teach that they want
-            const mySkills = (currentUser.skillsToTeach || []).map(s => s.name || s);
+            const mySkills = (currentUser.skillsToTeach || []).map(s =>
+                typeof s === 'object' ? (s.title || s.name || String(s)) : s
+            );
             const theirWants = targetUser.wants || [];
             const matchTeach = mySkills.find(s => theirWants.includes(s)) || mySkills[0] || "";
 
             // Smart match: What they teach (just pick first)
             const theirTeaches = targetUser.teaches || targetUser.skills || [];
-            const matchLearn = theirTeaches[0] || "";
+            const firstTeach = theirTeaches[0];
+            const matchLearn = (typeof firstTeach === 'object' ? (firstTeach.title || firstTeach.name || String(firstTeach)) : firstTeach) || "";
 
             setFormData(prev => ({
                 ...prev,
@@ -74,19 +77,21 @@ const RequestSwapModal = ({ isOpen: externalIsOpen, onClose: externalOnClose, ta
         skills: ["Figma", "UI Design"] // Mock fallback
     };
 
-    // Mock skills if not provided in user object
-    const skillsToLearn = user.teaches || user.skills || [
+    //Mock skills if not provided in user object
+    const skillsToLearn = (user.teaches || user.skills || [
         "Figma & Design Tools",
         "UX Research & Testing",
         "Design Systems",
         "UI Design Principles",
-    ];
+    ]).map(s => typeof s === 'object' ? (s.title || s.name || String(s)) : s);
 
-    // Get real skills from current user
-    const skillsToTeach = (currentUser?.skillsToTeach || []).map(s => s.name || s);
+    // Get real skills from current user - handle both object and string format
+    let skillsToTeach = (currentUser?.skillsToTeach || []).map(s =>
+        typeof s === 'object' ? (s.title || s.name || String(s)) : s
+    );
     if (skillsToTeach.length === 0) {
         // Fallback if user has no skills listed
-        skillsToTeach.push("Coding", "Mentorship");
+        skillsToTeach = ["Coding", "Mentorship"];
     }
 
     const timeOptions = [
@@ -151,16 +156,13 @@ const RequestSwapModal = ({ isOpen: externalIsOpen, onClose: externalOnClose, ta
         try {
             // 1. Create Swap Record
             const swapData = {
-                requesterId: currentUser.id,
-                receiverId: user.id,
-                learnSkill: formData.learnSkill,
-                teachSkill: formData.teachSkill,
+                recipientId: user.id,
+                skillRequested: formData.learnSkill,
+                skillOffered: formData.teachSkill,
                 message: formData.message,
                 availability: formData.availability,
                 duration: formData.duration,
                 preferences: formData.preferences,
-                status: "pending",
-                createdAt: new Date().toISOString(),
             };
 
             const newSwap = await createSwapMutation.mutateAsync(swapData);

@@ -183,7 +183,16 @@ const SkillSwapCommunityPage = () => {
                                                 <User className="w-5 h-5 text-white" />
                                             </div>
                                             <div className="flex-1">
-                                                <h3 className="font-semibold text-sm">{post.author}</h3>
+                                                <h3 className="font-semibold text-sm">
+                                                    {post.author && typeof post.author === 'object'
+                                                        ? `${post.author.firstName} ${post.author.lastName}`
+                                                        : (post.author || 'Anonymous')}
+                                                    {post.author?.level && (
+                                                        <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
+                                                            Lvl {post.author.level}
+                                                        </span>
+                                                    )}
+                                                </h3>
                                                 <p className="text-xs text-gray-500">
                                                     {formatTime(post.timestamp)}
                                                 </p>
@@ -231,7 +240,9 @@ const SkillSwapCommunityPage = () => {
                                                         <div className="flex-1">
                                                             <div className="flex items-center gap-2 mb-1">
                                                                 <span className="font-medium text-sm">
-                                                                    {comment.author}
+                                                                    {comment.author && typeof comment.author === 'object'
+                                                                        ? `${comment.author.firstName} ${comment.author.lastName}`
+                                                                        : (comment.author || 'Anonymous')}
                                                                 </span>
                                                                 <span className="text-xs text-gray-500">
                                                                     <Clock className="w-3 h-3 inline mr-1" />

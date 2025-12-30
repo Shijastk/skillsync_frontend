@@ -4,7 +4,10 @@ import { lazy } from 'react';
  * Lazy-loaded page components for code splitting
  */
 export const pages = {
-    // Auth pages
+    // Public pages
+    Landing: lazy(() => import('../pages/LandingPage')),
+
+    // Auth pages (deprecated - now using modal)
     Login: lazy(() => import('../pages/Auth/Login')),
     Register: lazy(() => import('../pages/Auth/Register')),
 
@@ -12,12 +15,14 @@ export const pages = {
     Home: lazy(() => import('../pages/Home')),
     Discover: lazy(() => import('../pages/Discovery')),
     Groups: lazy(() => import('../pages/Groups')),
+    GroupDetails: lazy(() => import('../pages/GroupDetails')),
     Messages: lazy(() => import('../Components/Messages')),
     Community: lazy(() => import('../pages/CommunityPage')),
     Schedule: lazy(() => import('../pages/SchedulePage')),
 
     // Profile pages
-    Profile: lazy(() => import('../Components/Profile/UnifiedProfile')),
+    PersonalProfile: lazy(() => import('../Components/Profile/PersonalProfile')),
+    PublicProfile: lazy(() => import('../Components/Profile/PublicProfile')),
 
     // Other pages
     Wallet: lazy(() => import('../pages/WalletPage')),
@@ -32,6 +37,11 @@ export const routeConfig = {
     // Public routes (accessible without authentication)
     public: [
         {
+            path: '/',
+            component: 'Landing',
+            title: 'SkillSwap - Exchange Skills, Grow Together',
+        },
+        {
             path: '/login',
             component: 'Login',
             title: 'Login',
@@ -41,12 +51,17 @@ export const routeConfig = {
             component: 'Register',
             title: 'Register',
         },
+        {
+            path: '/discovery',
+            component: 'Discover',
+            title: 'Discover',
+        },
     ],
 
     // Protected routes (require authentication)
     protected: [
         {
-            path: '/',
+            path: '/home',
             component: 'Home',
             title: 'Home',
         },
@@ -59,6 +74,11 @@ export const routeConfig = {
             path: '/groups',
             component: 'Groups',
             title: 'Groups',
+        },
+        {
+            path: '/groups/:groupId',
+            component: 'GroupDetails',
+            title: 'Group Details',
         },
         {
             path: '/messages',
@@ -77,15 +97,13 @@ export const routeConfig = {
         },
         {
             path: '/profile/:userId',
-            component: 'Profile',
-            title: 'Profile',
-            props: {},
+            component: 'PublicProfile',
+            title: 'User Profile',
         },
         {
             path: '/profile',
-            component: 'Profile',
+            component: 'PersonalProfile',
             title: 'My Profile',
-            props: { isOwnProfile: true },
         },
         {
             path: '/wallet',

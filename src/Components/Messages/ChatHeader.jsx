@@ -35,12 +35,25 @@ const ChatHeader = ({
         )}
         <div className="flex items-center gap-2 md:gap-3 min-w-0">
           <div className="relative flex-shrink-0">
-            <div className="w-10 h-10 bg-gradient-to-br from-gray-700 to-gray-900 rounded-full flex items-center justify-center text-white font-semibold text-base">
-              {conversation.avatar}
+            <div className="w-10 h-10 bg-gradient-to-br from-gray-700 to-gray-900 rounded-full flex items-center justify-center text-white font-semibold text-base overflow-hidden">
+              {conversation.avatar && (conversation.avatar.startsWith('http://') || conversation.avatar.startsWith('https://')) ? (
+                <img
+                  src={conversation.avatar}
+                  alt={conversation.name}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    // If image fails to load, show initials instead
+                    e.target.style.display = 'none';
+                    e.target.parentElement.textContent = conversation.name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || '?';
+                  }}
+                />
+              ) : (
+                // Show initials (first letters of name)
+                conversation.name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || conversation.avatar || '?'
+              )}
             </div>
             <div
-              className={`absolute bottom-0 right-0 w-2.5 h-2.5 ${STATUS_COLORS[conversation.status]
-                } border-2 border-white rounded-full`}
+              className={`absolute bottom-0 right-0 w-2.5 h-2.5 ${STATUS_COLORS[conversation.status]} border-2 border-white rounded-full`}
             />
           </div>
           <div className="min-w-0">
@@ -107,12 +120,28 @@ const ChatHeader = ({
           </div>
         </div>
         <div className="flex items-center justify-between sm:justify-end gap-3 flex-shrink-0">
-          <div className="text-left sm:text-right">
-            <div className="text-xs text-gray-500">Next Session</div>
-            <div className="font-medium text-gray-900 text-sm whitespace-nowrap">
-              {conversation.swapDetails.nextSession}
+          {/* Status display for pending/accepted swaps */}
+          {(conversation.swapDetails.status === 'pending' || conversation.swapDetails.status === 'request') && (
+            <div className="text-left sm:text-right">
+              <div className="text-xs text-gray-500">Status</div>
+              <div className="font-medium text-orange-600 text-sm whitespace-nowrap flex items-center gap-1">
+                <RefreshCw size={12} className="animate-spin" />
+                {isRequest ? 'Awaiting your response' : 'Pending approval'}
+              </div>
             </div>
-          </div>
+          )}
+
+          {/* Next Session display for accepted/active swaps */}
+          {conversation.swapDetails.status !== 'pending' && conversation.swapDetails.status !== 'request' && (
+            <div className="text-left sm:text-right">
+              <div className="text-xs text-gray-500">Next Session</div>
+              <div className="font-medium text-gray-900 text-sm whitespace-nowrap">
+                {conversation.swapDetails.nextSession}
+              </div>
+            </div>
+          )}
+
+          {/* Accept/Reject buttons for incoming requests */}
           {isRequest ? (
             <div className="flex gap-2 flex-shrink-0">
               <button
@@ -130,7 +159,11 @@ const ChatHeader = ({
                 Reject
               </button>
             </div>
+          ) : conversation.swapDetails.status === 'pending' ? (
+            /* Outgoing pending request - no action buttons, just show pending state */
+            null
           ) : (
+            /* Schedule button for accepted/active swaps only */
             <button
               onClick={onSchedule}
               className="px-3 py-1.5 bg-black text-white text-sm font-medium rounded-lg hover:bg-gray-800 flex items-center gap-1 transition-colors flex-shrink-0"

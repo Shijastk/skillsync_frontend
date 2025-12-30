@@ -66,7 +66,10 @@ const PostCard = ({ post, isLiked, isSaved, onLike, onSave, onSwap, onReport, ha
               </div>
               <div className="flex flex-col items-end">
                 <span className="text-[10px] text-gray-400 uppercase font-bold tracking-wide">Match Score</span>
-                <span className="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600">
+                <span className={`text-lg font-bold ${post.matchScore >= 90 ? 'text-green-600' :
+                    post.matchScore >= 75 ? 'text-indigo-600' :
+                      'text-amber-600'
+                  }`}>
                   {post.matchScore}%
                 </span>
               </div>
@@ -181,6 +184,18 @@ const PostCard = ({ post, isLiked, isSaved, onLike, onSave, onSwap, onReport, ha
           {post.content}
         </p>
 
+        {/* Image Display - from backend */}
+        {post.image && (
+          <div className="mt-4 rounded-xl overflow-hidden border border-gray-200">
+            <img
+              src={post.image}
+              alt="Post image"
+              className="w-full h-auto object-cover max-h-96"
+              loading="lazy"
+            />
+          </div>
+        )}
+
         {renderContentSpecifics()}
 
         {post.tags && (
@@ -234,7 +249,7 @@ const PostCard = ({ post, isLiked, isSaved, onLike, onSave, onSwap, onReport, ha
               {hasActiveSwap ? (
                 <>
                   <Clock size={16} />
-                  <span>{swapStatus === 'pending' ? 'Requested' : 'Swapping'}</span>
+                  <span>{swapStatus === 'pending' ? 'Request Sent' : 'Active'}</span>
                 </>
               ) : (
                 <>

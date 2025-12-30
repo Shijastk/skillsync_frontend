@@ -13,6 +13,35 @@ const POPULAR_SKILLS = [
     "Photography", "Spanish", "Public Speaking", "Guitar", "Cooking"
 ];
 
+// Smart skill categorization based on keywords
+const SKILL_CATEGORIES = {
+    frontend: ['react', 'vue', 'angular', 'javascript', 'js', 'html', 'css', 'sass', 'tailwind', 'bootstrap', 'typescript', 'nextjs', 'webpack', 'vite'],
+    backend: ['node', 'nodejs', 'python', 'java', 'php', 'ruby', 'go', 'rust', 'c++', 'c#', 'api', 'express', 'django', 'flask', 'spring', 'laravel'],
+    database: ['sql', 'mysql', 'postgresql', 'mongodb', 'redis', 'database', 'firebase', 'supabase'],
+    design: ['figma', 'sketch', 'adobe', 'photoshop', 'illustrator', 'ui', 'ux', 'design', 'graphic'],
+    mobile: ['ios', 'android', 'swift', 'kotlin', 'react native', 'flutter', 'mobile'],
+    devops: ['docker', 'kubernetes', 'aws', 'azure', 'gcp', 'ci/cd', 'jenkins', 'terraform', 'devops'],
+    data: ['data', 'analytics', 'machine learning', 'ml', 'ai', 'tensorflow', 'pytorch', 'pandas', 'numpy'],
+    marketing: ['marketing', 'seo', 'social media', 'content', 'copywriting', 'ads', 'analytics'],
+    business: ['business', 'management', 'leadership', 'strategy', 'finance', 'accounting', 'sales'],
+    creative: ['photography', 'video', 'editing', 'music', 'art', 'writing', 'creative'],
+    language: ['english', 'spanish', 'french', 'german', 'chinese', 'japanese', 'language'],
+    soft_skills: ['communication', 'public speaking', 'presentation', 'negotiation', 'teamwork'],
+};
+
+// Auto-detect skill category
+const detectCategory = (skillName) => {
+    const skill = skillName.toLowerCase().trim();
+
+    for (const [category, keywords] of Object.entries(SKILL_CATEGORIES)) {
+        if (keywords.some(keyword => skill.includes(keyword) || keyword.includes(skill))) {
+            return category;
+        }
+    }
+
+    return 'general'; // default fallback
+};
+
 const OnboardingModal = ({ isOpen, onClose }) => {
     const { user, updateUser } = useAuthContext();
     const { success, error } = useToast();
@@ -51,13 +80,40 @@ const OnboardingModal = ({ isOpen, onClose }) => {
     const handleAddSkill = (type, skillName) => {
         if (!skillName.trim()) return;
 
-        // Create skill object structure: { name: "React", level: "Intermediate" }
-        // For MVP just defaulting level to Intermediate
-        const newSkill = { id: Date.now().toString(), name: skillName.trim(), level: "Intermediate" };
+        const trimmedSkill = skillName.trim();
+        const detectedCategory = detectCategory(trimmedSkill);
+
+        // Create skill object with all required backend fields
+        const newSkill = {
+            // Required fields for backend
+            title: trimmedSkill,
+            description: type === 'teach'
+                ? `I have experience with ${trimmedSkill} and can help others learn it`
+                : `I'm interested in learning ${trimmedSkill}`,
+            category: detectedCategory,
+            experienceLevel: type === 'teach' ? 'intermediate' : 'beginner',
+
+            // Optional fields with smart defaults
+            ...(type === 'teach' && {
+                proficiency: 'intermediate',
+                yearsExperience: '1-3'
+            }),
+
+            // Common fields
+            availability: 'flexible',
+            preferredMethod: 'flexible',
+            tags: [detectedCategory, trimmedSkill.toLowerCase()],
+
+            // Legacy fields for compatibility (can be removed later)
+            name: trimmedSkill,
+            level: type === 'teach' ? 'Intermediate' : 'Beginner',
+            id: Date.now().toString()
+        };
 
         setFormData(prev => {
             const list = type === 'teach' ? prev.skillsToTeach : prev.skillsToLearn;
-            if (list.some(s => s.name === newSkill.name)) return prev; // avoid dupes
+            // Check for duplicates based on title
+            if (list.some(s => (s.title || s.name) === trimmedSkill)) return prev;
 
             return {
                 ...prev,
@@ -69,29 +125,32 @@ const OnboardingModal = ({ isOpen, onClose }) => {
         else setNewSkillLearn("");
     };
 
-    const removeSkill = (type, skillName) => {
+    const removeSkill = (type, skillIdentifier) => {
         setFormData(prev => ({
             ...prev,
             [type === 'teach' ? 'skillsToTeach' : 'skillsToLearn']:
-                (type === 'teach' ? prev.skillsToTeach : prev.skillsToLearn).filter(s => s.name !== skillName)
+                (type === 'teach' ? prev.skillsToTeach : prev.skillsToLearn).filter(
+                    s => (s.title || s.name) !== skillIdentifier
+                )
         }));
     };
 
     const handleFinish = async () => {
         try {
-            // 1. Update Server (Mock)
-            if (user?.id) {
-                await updateUserMutation.mutateAsync({ id: user.id, data: formData });
-            }
+            console.log('Saving onboarding data:', formData);
 
-            // 2. Update Local Context
-            updateUser({ ...user, ...formData });
+            // Call the update API with the correct format (just the data, not wrapped)
+            await updateUserMutation.mutateAsync(formData);
+
+            // Update local context with the new data
+            const updatedUser = { ...user, ...formData };
+            updateUser(updatedUser);
 
             success("Profile Setup Complete!");
             onClose();
         } catch (err) {
             console.error("Onboarding Error:", err);
-            error("Failed to save profile.");
+            error(err.response?.data?.message || "Failed to save profile.");
         }
     };
 
@@ -105,7 +164,9 @@ const OnboardingModal = ({ isOpen, onClose }) => {
                             <div className="w-16 h-16 bg-black text-white rounded-full flex items-center justify-center mx-auto mb-4">
                                 <User size={32} />
                             </div>
-                            <h3 className="text-xl font-bold text-gray-900">Let's get to know you</h3>
+                            <h3 className="text-xl font-bold text-gray-900">
+                                Let's get to know you{user?.firstName ? `, ${user.firstName}` : ''}!
+                            </h3>
                             <p className="text-gray-500 text-sm">Tell the community who you are</p>
                         </div>
 
@@ -177,8 +238,8 @@ const OnboardingModal = ({ isOpen, onClose }) => {
                         <div className="flex flex-wrap gap-2 min-h-[60px]">
                             {formData.skillsToTeach.map((skill, idx) => (
                                 <span key={idx} className="bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-2 animate-popIn">
-                                    {skill.name}
-                                    <button onClick={() => removeSkill('teach', skill.name)} className="hover:text-indigo-900"><X size={14} /></button>
+                                    {skill.title || skill.name}
+                                    <button onClick={() => removeSkill('teach', skill.title || skill.name)} className="hover:text-indigo-900"><X size={14} /></button>
                                 </span>
                             ))}
                         </div>
@@ -233,8 +294,8 @@ const OnboardingModal = ({ isOpen, onClose }) => {
                         <div className="flex flex-wrap gap-2 min-h-[60px]">
                             {formData.skillsToLearn.map((skill, idx) => (
                                 <span key={idx} className="bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-2 animate-popIn">
-                                    {skill.name}
-                                    <button onClick={() => removeSkill('learn', skill.name)} className="hover:text-emerald-900"><X size={14} /></button>
+                                    {skill.title || skill.name}
+                                    <button onClick={() => removeSkill('learn', skill.title || skill.name)} className="hover:text-emerald-900"><X size={14} /></button>
                                 </span>
                             ))}
                         </div>

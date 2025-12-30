@@ -6,13 +6,14 @@ import {
 
 
 
-const LeftSidebar = ({ user, upcomingSessions, onNavigate }) => {
+const LeftSidebar = ({ user, upcomingSessions, onNavigate, onScheduleClick }) => {
+
 
     const quickLinks = [
         { icon: Zap, label: 'Requests', color: 'bg-amber-100 text-amber-600', action: () => onNavigate('messages') },
-        { icon: BookOpen, label: 'Saved', color: 'bg-blue-100 text-blue-600', action: () => { } },
-        { icon: Award, label: 'Badges', color: 'bg-purple-100 text-purple-600', action: () => { } },
-        { icon: Settings, label: 'Settings', color: 'bg-gray-100 text-gray-600', action: () => { } },
+        { icon: BookOpen, label: 'Saved', color: 'bg-blue-100 text-blue-600', action: () => onNavigate('discover') },
+        { icon: Award, label: 'Badges', color: 'bg-purple-100 text-purple-600', action: () => onNavigate('my-swaps') },
+        { icon: Settings, label: 'Settings', color: 'bg-gray-100 text-gray-600', action: () => onNavigate('discover') },
     ];
 
     return (
@@ -66,12 +67,12 @@ const LeftSidebar = ({ user, upcomingSessions, onNavigate }) => {
                         <Calendar size={16} className="text-gray-400" />
                         Your Schedule
                     </h3>
-                    <span className="text-xs font-medium text-indigo-600 cursor-pointer hover:underline">Calendar</span>
+                    <span className="text-xs font-medium text-indigo-600 cursor-pointer hover:underline" onClick={() => onNavigate('my-swaps')}>Calendar</span>
                 </div>
 
                 <div className="space-y-3">
                     {upcomingSessions.map((session) => (
-                        <div key={session.id} className="flex gap-3 items-center group cursor-pointer p-2 -mx-2 hover:bg-gray-50 rounded-xl transition-colors">
+                        <div key={session.id} onClick={() => onScheduleClick && onScheduleClick(session.id)} className="flex gap-3 items-center group cursor-pointer p-2 -mx-2 hover:bg-gray-50 rounded-xl transition-colors">
                             <div className="flex flex-col items-center justify-center w-12 h-12 bg-indigo-50 rounded-xl text-indigo-600 border border-indigo-100">
                                 <span className="text-xs font-bold">{session.time}</span>
                             </div>
@@ -89,7 +90,7 @@ const LeftSidebar = ({ user, upcomingSessions, onNavigate }) => {
                             )}
                         </div>
                     ))}
-                    <button className="w-full mt-2 py-2 text-xs font-medium text-gray-500 border border-dashed border-gray-200 rounded-lg hover:border-gray-300 hover:text-gray-700 transition-colors">
+                    <button onClick={() => onScheduleClick && onScheduleClick('new')} className="w-full mt-2 py-2 text-xs font-medium text-gray-500 border border-dashed border-gray-200 rounded-lg hover:border-gray-300 hover:text-gray-700 transition-colors">
                         + Schedule Session
                     </button>
                 </div>
