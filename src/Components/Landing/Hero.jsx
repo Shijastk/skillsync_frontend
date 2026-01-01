@@ -131,10 +131,10 @@ function HeroGeometric({
             variants={fadeUpVariants}
             initial="hidden"
             animate="visible"
-            className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.03] border border-white/[0.08] mb-8 md:mb-12"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/[0.03] border border-white/[0.08] mb-6 md:mb-12"
           >
             <Circle className="h-2 w-2 fill-rose-500/80" />
-            <span className="text-sm text-white/60 tracking-wide">
+            <span className="text-xs sm:text-sm text-white/60 tracking-wide">
               {badge}
             </span>
           </motion.div>
@@ -145,7 +145,7 @@ function HeroGeometric({
             initial="hidden"
             animate="visible"
           >
-            <h1 className="text-3xl sm:text-6xl md:text-7xl font-bold mb-6 md:mb-8 tracking-tight">
+            <h1 className="text-5xl sm:text-6xl md:text-7xl font-bold mb-4 sm:mb-6 md:mb-8 tracking-tight px-2">
               <span className="bg-clip-text text-transparent bg-gradient-to-b from-white to-white/80">
                 {title1}
               </span>
@@ -162,7 +162,7 @@ function HeroGeometric({
             initial="hidden"
             animate="visible"
           >
-            <p className="text-sm sm:text-base md:text-lg text-white/40 mb-8 leading-relaxed font-light tracking-wide mx-auto px-4">
+            <p className="text-base sm:text-lg md:text-xl text-white/40 mb-8 sm:mb-10 leading-relaxed font-light tracking-wide mx-auto px-4 max-w-2xl">
               Connect with people worldwide to exchange skills. No money, just knowledge sharing and community building.
             </p>
           </motion.div>
@@ -177,16 +177,16 @@ function HeroGeometric({
             {/* Primary CTA - Get Started */}
             <a
               href="/register"
-              className="group relative inline-flex items-center gap-3 px-8 py-4 rounded-full 
+              className="group relative inline-flex items-center gap-2 sm:gap-3 px-6 sm:px-8 py-3 sm:py-4 rounded-full 
                 bg-gradient-to-r from-white via-gray-100 to-white 
                 hover:from-gray-100 hover:via-white hover:to-gray-100
-                text-black font-semibold text-lg
+                text-black font-semibold text-base sm:text-lg
                 shadow-[0_0_40px_rgba(255,255,255,0.2)]
                 hover:shadow-[0_0_60px_rgba(255,255,255,0.3)]
                 transition-all duration-300 ease-out
                 border border-white/20
                 overflow-hidden
-                min-w-[200px] justify-center"
+                w-full sm:w-auto sm:min-w-[200px] justify-center"
             >
               <span className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 
                 translate-x-[-100%] group-hover:translate-x-[100%] 
@@ -208,13 +208,13 @@ function HeroGeometric({
                 const featuresSection = document.getElementById('features');
                 featuresSection?.scrollIntoView({ behavior: 'smooth' });
               }}
-              className="group relative inline-flex items-center gap-3 px-8 py-4 rounded-full 
+              className="group relative inline-flex items-center gap-2 sm:gap-3 px-6 sm:px-8 py-3 sm:py-4 rounded-full 
                 bg-white/[0.03] hover:bg-white/[0.08]
-                text-white font-semibold text-lg
+                text-white font-semibold text-base sm:text-lg
                 border-2 border-white/20 hover:border-white/40
                 transition-all duration-300 ease-out
                 backdrop-blur-sm
-                min-w-[200px] justify-center"
+                w-full sm:w-auto sm:min-w-[200px] justify-center"
             >
               <span className="relative z-10">Learn More</span>
               <svg
