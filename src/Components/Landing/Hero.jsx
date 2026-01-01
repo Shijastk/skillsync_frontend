@@ -145,7 +145,7 @@ function HeroGeometric({
             initial="hidden"
             animate="visible"
           >
-            <h1 className="text-4xl sm:text-6xl md:text-8xl font-bold mb-6 md:mb-8 tracking-tight">
+            <h1 className="text-3xl sm:text-6xl md:text-7xl font-bold mb-6 md:mb-8 tracking-tight">
               <span className="bg-clip-text text-transparent bg-gradient-to-b from-white to-white/80">
                 {title1}
               </span>
@@ -162,9 +162,70 @@ function HeroGeometric({
             initial="hidden"
             animate="visible"
           >
-            <p className="text-base sm:text-lg md:text-xl text-white/40 mb-8 leading-relaxed font-light tracking-wide mx-auto px-4">
+            <p className="text-sm sm:text-base md:text-lg text-white/40 mb-8 leading-relaxed font-light tracking-wide mx-auto px-4">
               Connect with people worldwide to exchange skills. No money, just knowledge sharing and community building.
             </p>
+          </motion.div>
+
+          <motion.div
+            custom={3}
+            variants={fadeUpVariants}
+            initial="hidden"
+            animate="visible"
+            className="flex flex-col sm:flex-row gap-4 justify-center items-center"
+          >
+            {/* Primary CTA - Get Started */}
+            <a
+              href="/register"
+              className="group relative inline-flex items-center gap-3 px-8 py-4 rounded-full 
+                bg-gradient-to-r from-white via-gray-100 to-white 
+                hover:from-gray-100 hover:via-white hover:to-gray-100
+                text-black font-semibold text-lg
+                shadow-[0_0_40px_rgba(255,255,255,0.2)]
+                hover:shadow-[0_0_60px_rgba(255,255,255,0.3)]
+                transition-all duration-300 ease-out
+                border border-white/20
+                overflow-hidden
+                min-w-[200px] justify-center"
+            >
+              <span className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 
+                translate-x-[-100%] group-hover:translate-x-[100%] 
+                transition-transform duration-700 ease-out" />
+              <span className="relative z-10">Get Started</span>
+              <svg
+                className="relative z-10 w-5 h-5 group-hover:translate-x-1 transition-transform duration-300"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+              </svg>
+            </a>
+
+            {/* Secondary CTA - Learn More */}
+            <button
+              onClick={() => {
+                const featuresSection = document.getElementById('features');
+                featuresSection?.scrollIntoView({ behavior: 'smooth' });
+              }}
+              className="group relative inline-flex items-center gap-3 px-8 py-4 rounded-full 
+                bg-white/[0.03] hover:bg-white/[0.08]
+                text-white font-semibold text-lg
+                border-2 border-white/20 hover:border-white/40
+                transition-all duration-300 ease-out
+                backdrop-blur-sm
+                min-w-[200px] justify-center"
+            >
+              <span className="relative z-10">Learn More</span>
+              <svg
+                className="relative z-10 w-5 h-5 group-hover:translate-y-1 transition-transform duration-300"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
           </motion.div>
         </div>
       </div>
